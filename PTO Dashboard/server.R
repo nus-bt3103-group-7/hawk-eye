@@ -6,13 +6,13 @@ shinyServer(function(input, output) {
   
   #################################################################################
   #data
-  
-  #required data sets
-  # static: allStoppingPoints (all bus stops)
-  # dynamic: commuter's locations - simulated for now
-  
-  allStoppingPoints <- read.csv("allstoppingpoints.csv")
+  #currently a dataframe is created from a .csv read - but should actually be pulled from firebase
+  #commuterData.csv is simulated using another R file (see "Data Generator.R")
+
   commuterData <- read.csv("commuterData.csv")
+  #################################################################################
+  #bus stop master file
+  allStoppingPoints <- read.csv("allstoppingpoints.csv")
   #################################################################################
   
   output$groundMap <- renderLeaflet({
