@@ -152,7 +152,10 @@ for (i in 1:500){
         
         destination_latLong <- generateRandomPoint(assignedCluster_lat, assignedCluster_long, 2000000)
       } else {
-        destination_latLong <- generateRandomPoint(affectedStation[2], affectedStation[1], 50000)
+        
+        randomStoppingPoint <- allStoppingPoints[sample(nrow(allStoppingPoints), 1), ]
+        destination_latLong <- c(randomStoppingPoint$coords.x2, randomStoppingPoint$coords.x1)
+        # destination_latLong <- generateRandomPoint(randomStoppingPoint$coords.x2, randomStoppingPoint$coords.x1, 50000)
       }
       
       commuterData[i,destination_lat_col] <- destination_latLong[1]
@@ -172,7 +175,7 @@ leaflet() %>%
   addCircles(lng =commuterData$current_long, lat=commuterData$current_lat, radius = 0.5, col = "blue")  %>%
   addCircles(lng =commuterData$destination_long, lat=commuterData$destination_lat, radius = 0.5, col = "red") 
 
-write.csv(commuterData, "commuterData.csv", row.names = F)
+# write.csv(commuterData, "commuterData.csv", row.names = F)
 
 
 
