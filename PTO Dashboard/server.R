@@ -6,13 +6,13 @@ shinyServer(function(input, output) {
   
   #################################################################################
   #data
-  #currently a dataframe is created from a .csv read - but should actually be pulled from firebase
-  #commuterData.csv is simulated using another R file (see "Data Generator.R")
-
-  commuterData <- read.csv("commuterData.csv")
-  #################################################################################
-  #bus stop master file
+  
+  #required data sets
+  # static: allStoppingPoints (all bus stops)
+  # dynamic: commuter's locations - simulated for now
+  
   allStoppingPoints <- read.csv("allstoppingpoints.csv")
+  commuterData <- read.csv("commuterData.csv")
   #################################################################################
   
   output$groundMap <- renderLeaflet({
@@ -45,6 +45,34 @@ shinyServer(function(input, output) {
   
   proximityStations <- subset(allStoppingPoints, distanceFromStation < scopeRadius)
   
+  #################################################################################
+  #perform clustering
+  cbind(commuterData$destination_lat, commuterData$destination_long)
+  
+  kmeansOutput <- kmeans(cbind(commuterData$destination_lat, commuterData$destination_long), centers = 10)
+  
+  clusterCentres <- as.data.frame(kmeansOutput$centers)
+  colnames(clusterCentres) <- c("lat", "long")
+  clusterCentres$commutersDestinationInside <- NA
+  
+  for (clusterCentreRow in 1:nrow(clusterCentres)){
+    
+    clusterCentre <- c(clusterCentres[clusterCentreRow,2], clusterCentres[clusterCentreRow,1])
+    
+    tempDestinations <- cbind.data.frame(commuterData$destination_lat, commuterData$destination_long, NA)
+    colnames(tempDestinations) <- c("lat", "long", "distanceFromClusterCentre")
+    
+    for (i in 1:nrow(tempDestinations)){
+      longLat <- c(tempDestinations[i,2], tempDestinations[i,1])
+      tempDestinations[i,3] <- distGeo(clusterCentre, longLat)
+    }
+    
+    destinationsInCluster <- nrow(subset(tempDestinations, distanceFromClusterCentre < 2000))
+    
+    clusterCentres[clusterCentreRow,3] <- destinationsInCluster
+  }
+  
+  clusterCentres <- subset(clusterCentres, commutersDestinationInside > 30)
     ################################################################################
     #leaflet aestetics 
     
@@ -54,7 +82,7 @@ shinyServer(function(input, output) {
     #generate leaflet
     leaflet() %>%
       addLayersControl(
-        overlayGroups = c("Nearby Stations", "Commuters' Destination", "All Bus Stops"),
+        overlayGroups = c("Nearby Stations", "Commuters' Destination", "Suggested Clusters", "All Bus Stops"),
         options = layersControlOptions(collapsed = FALSE)
       )%>%
       addProviderTiles("CartoDB.Positron") %>%
@@ -63,8 +91,8 @@ shinyServer(function(input, output) {
       addCircles(lng =proximityStops$coords.x1, lat=proximityStops$coords.x2, group = "Nearby Stations") %>%
       addCircles(lng =commuterData$current_long, lat=commuterData$current_lat, group = "Commuters' Location") %>%
       addCircles(lng =commuterData$destination_long, lat=commuterData$destination_lat, col = "red", group = "Commuters' Destination") %>%
-      addCircles(lng =allStoppingPoints$coords.x1, lat=allStoppingPoints$coords.x2, col = "black", group = "All Bus Stops")
-
+      addCircles(lng =allStoppingPoints$coords.x1, lat=allStoppingPoints$coords.x2, col = "black", group = "All Bus Stops", radius = 10) %>%
+      addCircles(lng =clusterCentres$long, lat=clusterCentres$lat, col = "green", opacity = 0.2, radius = 2000, stroke=FALSE, group = "Suggested Clusters") 
   })
 
 })
