@@ -21,6 +21,14 @@ shinyUI(
     mainPanel(
                  fluidRow(
                    leafletOutput("groundMap")
+                 ), 
+                 
+                 fluidRow( ),
+                 fluidRow( ),
+                 fluidRow( ),
+                 
+                 fluidRow(
+                   plotlyOutput("plotlyBarChart")
                  )
     )  
 
