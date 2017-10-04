@@ -84,13 +84,14 @@ shinyServer(function(input, output) {
     #generate leaflet
     leaflet() %>%
       addLayersControl(
-        overlayGroups = c("Nearby Stations", "Commuters' Destination", "Suggested Clusters", "All Bus Stops"),
+        overlayGroups = c("Commuters' Destination", "Suggested Clusters", "All Bus Stops"),
         options = layersControlOptions(collapsed = FALSE)
       )%>%
       addProviderTiles("CartoDB.Positron") %>%
       addMarkers(lng=stationLatLong[1], lat=stationLatLong[2], icon = mrtIcon, popup=scopeRadius, group = "Affected Station") %>%
       hideGroup("All Bus Stops") %>% 
-      addCircles(lng =proximityStops$coords.x1, lat=proximityStops$coords.x2, group = "Nearby Stations") %>%
+      addLegend('bottomright', title = "Commuters' Data", colors =c("blue", "red"), labels =c("Current", "Destinations")) %>%
+      # addCircles(lng =proximityStations$coords.x1, lat=proximityStations$coords.x2, group = "Nearby Stations") %>%
       addCircles(lng =commuterData$current_long, lat=commuterData$current_lat, group = "Commuters' Location") %>%
       addCircles(lng =commuterData$destination_long, lat=commuterData$destination_lat, col = "red", group = "Commuters' Destination") %>%
       addCircles(lng =allStoppingPoints$coords.x1, lat=allStoppingPoints$coords.x2, col = "black", group = "All Bus Stops", radius = 10) %>%
