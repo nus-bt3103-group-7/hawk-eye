@@ -13,23 +13,25 @@ shinyUI(
 
     sidebarPanel(width=2,
                  selectInput("radius", "Radius:",
-                             c("200m" = 200,
-                               "400m" = 400,
-                               "600m" = 800))
+                             c("400m" = 400,
+                               "800m" = 800,
+                               "1000m" = 1000,
+                               "1500m" = 1500,
+                               "2000m" = 2000),
+                             selected = 800)
     ),
 
     mainPanel(
+      
                  fluidRow(
                    leafletOutput("groundMap")
                  ), 
-                 
-                 fluidRow( ),
-                 fluidRow( ),
-                 fluidRow( ),
-                 
-                 fluidRow(
-                   plotlyOutput("plotlyBarChart")
+                 fluidRow("Matching Commuters to Destinations", align="center"), 
+                 fluidRow(plotlyOutput(outputId = "plotlyBarChart")
+                   ),
+                 fluidRow(plotlyOutput(outputId = "plotlySurfaceChart")
                  )
+                 
     )  
 
   )
