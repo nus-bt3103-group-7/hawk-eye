@@ -5,12 +5,12 @@ library(shiny)
 #################################################################################
 #data
 
-#required data sets
+# required data sets
 # static: allStoppingPoints (all bus stops)
 # dynamic: commuter's locations - simulated for now
 
-allStoppingPoints <- read.csv("allstoppingpoints.csv")
-commuterData <- read.csv("commuterData.csv")
+allStoppingPoints <- read.csv("../resources/allstoppingpoints.csv")
+commuterData <- read.csv("../resources/commuterData.csv")
 
 # commuterData <- commuterData[sample(nrow(commuterData), 100), ]
 

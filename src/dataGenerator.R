@@ -3,7 +3,7 @@ library(geosphere)
 
 #################################################################################
 #read data
-allStoppingPoints <- read.csv("allstoppingpoints.csv")
+allStoppingPoints <- read.csv("../resources/allstoppingpoints.csv")
 
 #################################################################################
 #set paramaters
@@ -175,7 +175,7 @@ leaflet() %>%
   addCircles(lng =commuterData$current_long, lat=commuterData$current_lat, radius = 0.5, col = "blue")  %>%
   addCircles(lng =commuterData$destination_long, lat=commuterData$destination_lat, radius = 0.5, col = "red") 
 
-# write.csv(commuterData, "commuterData.csv", row.names = F)
+write.csv(commuterData, "../resources/commuterData.csv", row.names = F)
 
 
 
