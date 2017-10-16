@@ -1,11 +1,10 @@
-library(leaflet)
-library(geosphere)
+library(jsonlite)
+library(httr)
 
-#################################################################################
-#read data
+# CLICK `Session -> Set Working Directory -> To Source File Location`
+
 allStoppingPoints <- read.csv("../resources/allstoppingpoints.csv")
 
-#################################################################################
 #set paramaters
 
 affectedStation <- c(1.3513141, 103.8469711)
@@ -52,8 +51,8 @@ generateRandomPoint <- function(lat, long, displace){
   latLower <- lat - latDisplaceUnits
   latUpper <- lat + latDisplaceUnits
   
- c(runif(1,latLower,latUpper), runif(1,longLower,longUpper))
-
+  c(runif(1,latLower,latUpper), runif(1,longLower,longUpper))
+  
 }
 
 #################################################################################
@@ -83,89 +82,89 @@ destination_long_col <- which(colnames(commuterData) == "destination_long")
 
 
 for (i in 1:500){
-    commuterData[i, commuter_id_col] <- i
+  commuterData[i, commuter_id_col] <- i
+  
+  commuterData[i, station_lat_col] <- affectedStation[1]
+  commuterData[i, station_long_col] <- affectedStation[2]
+  
+  #determine the current location of the commuter
+  busStopOrRandom <- runif(1,0,1)
+  
+  if (busStopOrRandom < 0.9) {
+    originBusStop <- runif(1,0,1)
     
-    commuterData[i, station_lat_col] <- affectedStation[1]
-    commuterData[i, station_long_col] <- affectedStation[2]
+    if (originBusStop <= 0.4){
+      assignedBusStop <- 1
+    } else if (originBusStop <= 0.7){
+      assignedBusStop <- 2
+    } else if (originBusStop <= 0.9){
+      assignedBusStop <- 3
+    } else if (originBusStop <= 0.95){
+      assignedBusStop <- 4
+    } else{
+      assignedBusStop <- 5
+    }
     
-    #determine the current location of the commuter
-      busStopOrRandom <- runif(1,0,1)
-      
-      if (busStopOrRandom < 0.9) {
-        originBusStop <- runif(1,0,1)
-        
-        if (originBusStop <= 0.4){
-          assignedBusStop <- 1
-        } else if (originBusStop <= 0.7){
-          assignedBusStop <- 2
-        } else if (originBusStop <= 0.9){
-          assignedBusStop <- 3
-        } else if (originBusStop <= 0.95){
-          assignedBusStop <- 4
-        } else{
-          assignedBusStop <- 5
-        }
-        
-        assignedBusStop_lat <- proximityStops[assignedBusStop, 6]
-        assignedBusStop_long <- proximityStops[assignedBusStop, 5]
-        
-        current_latLong <- generateRandomPoint(assignedBusStop_lat, assignedBusStop_long, 800)
-      } else {
-        current_latLong <- generateRandomPoint(commuterData[i, station_lat_col], commuterData[i, station_long_col], 50000)
-      }
+    assignedBusStop_lat <- proximityStops[assignedBusStop, 6]
+    assignedBusStop_long <- proximityStops[assignedBusStop, 5]
     
-      commuterData[i,current_lat_col] <- current_latLong[1]
-      commuterData[i,current_long_col] <- current_latLong[2]
-      
-    #determine the destination of the commuter
-      clusterOrRandom <- runif(1,0,1)
-      
-      if (clusterOrRandom < 0.9) {
-        destinationClusterRandom <- runif(1,0,1)
-        
-        if (destinationClusterRandom <= 0.2){
-          assignedCluster <- 1
-        } else if (destinationClusterRandom <= 0.4){
-          assignedCluster <- 2
-        } else if (destinationClusterRandom <= 0.5){
-          assignedCluster <- 3
-        } else if (destinationClusterRandom <= 0.6){
-          assignedCluster <- 4
-        } else if (destinationClusterRandom <= 0.7){
-          assignedCluster <- 5
-        } else if (destinationClusterRandom <= 0.75){
-          assignedCluster <- 6
-        } else if (destinationClusterRandom <= 0.8){
-          assignedCluster <- 7
-        } else if (destinationClusterRandom <= 0.85){
-          assignedCluster <- 8
-        } else if (destinationClusterRandom <= 0.9){
-          assignedCluster <- 9
-        } else if (destinationClusterRandom <= 0.95){
-          assignedCluster <- 10
-        } else{
-          assignedCluster <- 11
-        }
-        
-        assignedCluster_lat <- randomClusters[assignedCluster, 6]
-        assignedCluster_long <- randomClusters[assignedCluster, 5]
-        
-        destination_latLong <- generateRandomPoint(assignedCluster_lat, assignedCluster_long, 2000000)
-      } else {
-        
-        randomStoppingPoint <- allStoppingPoints[sample(nrow(allStoppingPoints), 1), ]
-        destination_latLong <- c(randomStoppingPoint$coords.x2, randomStoppingPoint$coords.x1)
-        # destination_latLong <- generateRandomPoint(randomStoppingPoint$coords.x2, randomStoppingPoint$coords.x1, 50000)
-      }
-      
-      commuterData[i,destination_lat_col] <- destination_latLong[1]
-      commuterData[i,destination_long_col] <- destination_latLong[2]
+    current_latLong <- generateRandomPoint(assignedBusStop_lat, assignedBusStop_long, 800)
+  } else {
+    current_latLong <- generateRandomPoint(commuterData[i, station_lat_col], commuterData[i, station_long_col], 50000)
+  }
+  
+  commuterData[i,current_lat_col] <- current_latLong[1]
+  commuterData[i,current_long_col] <- current_latLong[2]
+  
+  #determine the destination of the commuter
+  clusterOrRandom <- runif(1,0,1)
+  
+  if (clusterOrRandom < 0.9) {
+    destinationClusterRandom <- runif(1,0,1)
+    
+    if (destinationClusterRandom <= 0.2){
+      assignedCluster <- 1
+    } else if (destinationClusterRandom <= 0.4){
+      assignedCluster <- 2
+    } else if (destinationClusterRandom <= 0.5){
+      assignedCluster <- 3
+    } else if (destinationClusterRandom <= 0.6){
+      assignedCluster <- 4
+    } else if (destinationClusterRandom <= 0.7){
+      assignedCluster <- 5
+    } else if (destinationClusterRandom <= 0.75){
+      assignedCluster <- 6
+    } else if (destinationClusterRandom <= 0.8){
+      assignedCluster <- 7
+    } else if (destinationClusterRandom <= 0.85){
+      assignedCluster <- 8
+    } else if (destinationClusterRandom <= 0.9){
+      assignedCluster <- 9
+    } else if (destinationClusterRandom <= 0.95){
+      assignedCluster <- 10
+    } else{
+      assignedCluster <- 11
+    }
+    
+    assignedCluster_lat <- randomClusters[assignedCluster, 6]
+    assignedCluster_long <- randomClusters[assignedCluster, 5]
+    
+    destination_latLong <- generateRandomPoint(assignedCluster_lat, assignedCluster_long, 2000000)
+  } else {
+    
+    randomStoppingPoint <- allStoppingPoints[sample(nrow(allStoppingPoints), 1), ]
+    destination_latLong <- c(randomStoppingPoint$coords.x2, randomStoppingPoint$coords.x1)
+    # destination_latLong <- generateRandomPoint(randomStoppingPoint$coords.x2, randomStoppingPoint$coords.x1, 50000)
+  }
+  
+  commuterData[i,destination_lat_col] <- destination_latLong[1]
+  commuterData[i,destination_long_col] <- destination_latLong[2]
 }
 
 commuterData <- na.omit(commuterData)
-################################################################################
+
 #leaflet aestetics 
-mrtIcon <- icons(iconUrl = 'mrt_logo.png',   iconWidth = 25, iconHeight = 30)
+mrtIcon <- icons(iconUrl = '../resources/mrt_logo.png',   iconWidth = 25, iconHeight = 30)
 #########
 #generate leaflet to visualise the simulated data
 
@@ -175,7 +174,6 @@ leaflet() %>%
   addCircles(lng =commuterData$current_long, lat=commuterData$current_lat, radius = 0.5, col = "blue")  %>%
   addCircles(lng =commuterData$destination_long, lat=commuterData$destination_lat, radius = 0.5, col = "red") 
 
-write.csv(commuterData, "../resources/commuterData.csv", row.names = F)
-
-
+PUT("https://bt3101-07.firebaseio.com/user_data.json?auth=MULTPLyGcPig4Hd2aCplVibPdIm3bpHoiT1LJG3R", 
+    body = toJSON(commuterData, pretty = TRUE))
 
