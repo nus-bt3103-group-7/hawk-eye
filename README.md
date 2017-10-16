@@ -1,7 +1,13 @@
-# hawk-eye
-A web app dashboard for Singapore MRT breakdown overview (prototype)
+# Hawk Eye
+A web app dashboard for Singapore MRT breakdown overview (prototype).
 
-# Software Requirements Specifics
+# Credits and Acknowledgement
+This app is created for the BT3103 project. The contributor of this project are:
 
-Please refer to the Google Docs shared by Prof. Currently it is not open to Public.
+* [Alohahazyx](https://github.com/Alohahazyx)
+* [Shadowsong27](https://github.com/Shadowsong27)
+* D C
+
+# Set Up
+In progress ...
 
