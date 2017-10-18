@@ -1,6 +1,9 @@
 library(leaflet)
 library(geosphere)
 library(shiny)
+library(jsonlite)
+library(httr)
+library(plotly)
 
 #################################################################################
 #data
@@ -9,10 +12,31 @@ library(shiny)
 # static: allStoppingPoints (all bus stops)
 # dynamic: commuter's locations - simulated for now
 
-allStoppingPoints <- read.csv("../resources/allstoppingpoints.csv")
-commuterData <- read.csv("../resources/commuterData.csv")
+################ function to get data from firebase
+pullFromFirebase <- function(url){
+  r <- GET(url)
+  con <- content(r, as="text")
+  dataList <- fromJSON(con)
+  as.data.frame(dataList)
+}
+###############
 
-# commuterData <- commuterData[sample(nrow(commuterData), 100), ]
+#pulling data from firebase db
+
+commuterData <- pullFromFirebase("https://bt3101-07.firebaseio.com/user_data.json?auth=MULTPLyGcPig4Hd2aCplVibPdIm3bpHoiT1LJG3R")
+allStoppingPoints <- pullFromFirebase("https://bt3101-07.firebaseio.com/bus_stop.json?auth=MULTPLyGcPig4Hd2aCplVibPdIm3bpHoiT1LJG3R")
+colnames(allStoppingPoints)[3] <- "longtitude"
+
+#################################################################################
+#get column ids
+current_lat_col <- which(colnames(commuterData) == "current_lat")
+current_long_col <- which(colnames(commuterData) == "current_long")
+destination_long_col <- which(colnames(commuterData) == "destination_long")
+destination_lat_col <- which(colnames(commuterData) == "destination_lat")
+station_long_col <- which(colnames(commuterData) == "station_long")
+station_lat_col <- which(colnames(commuterData) == "station_lat")
+stop_lat_col <- which(colnames(allStoppingPoints) == "latitude")
+stop_long_col <- which(colnames(allStoppingPoints) == "longtitude")
 
 #################################################################################
 
@@ -40,9 +64,7 @@ shinyServer(function(input, output) {
   colDistance <- which(colnames(allStoppingPoints)=="distanceFromStation")
   
   for (i in 1:nrow(allStoppingPoints)){
-    long <- allStoppingPoints[i,5]
-    lat <- allStoppingPoints[i,6]
-    longLat <- c(allStoppingPoints[i,5], allStoppingPoints[i,6])
+    longLat <- c(allStoppingPoints[i,stop_long_col], allStoppingPoints[i,stop_lat_col])
     allStoppingPoints[i,colDistance] <-  distGeo(stationLatLong, longLat)
   }
   
@@ -92,10 +114,10 @@ shinyServer(function(input, output) {
       addMarkers(lng=stationLatLong[1], lat=stationLatLong[2], icon = mrtIcon, popup=scopeRadius, group = "Affected Station") %>%
       hideGroup("All Bus Stops") %>% 
       addLegend('bottomright', title = "Commuters' Data", colors =c("blue", "red"), labels =c("Current", "Destinations")) %>%
-      # addCircles(lng =proximityStations$coords.x1, lat=proximityStations$coords.x2, group = "Nearby Stations") %>%
+      # addCircles(lng =proximityStationslongtitude, lat=proximityStationslatitude, group = "Nearby Stations") %>%
       addCircles(lng =commuterData$current_long, lat=commuterData$current_lat, group = "Commuters' Location") %>%
       addCircles(lng =commuterData$destination_long, lat=commuterData$destination_lat, col = "red", group = "Commuters' Destination") %>%
-      addCircles(lng =allStoppingPoints$coords.x1, lat=allStoppingPoints$coords.x2, col = "black", group = "All Bus Stops", radius = 10) %>%
+      addCircles(lng =allStoppingPoints$longtitude, lat=allStoppingPoints$latitude, col = "black", group = "All Bus Stops", radius = 10) %>%
       addCircles(lng =clusterCentres$long, lat=clusterCentres$lat, col = "green", opacity = 0.2, radius = 2000, stroke=FALSE, group = "Suggested Clusters") 
   })
   
@@ -121,7 +143,7 @@ shinyServer(function(input, output) {
     allStoppingPoints$distanceFromStation <- NA
     colDistance <- which(colnames(allStoppingPoints)=="distanceFromStation")
     for (i in 1:nrow(allStoppingPoints)){
-      longLat <- c(allStoppingPoints[i,5], allStoppingPoints[i,6])
+      longLat <- c(allStoppingPoints[i,stop_long_col], allStoppingPoints[i,stop_lat_col])
       allStoppingPoints[i,colDistance] <-  distGeo(stationLatLong, longLat)
     }
     proximityStops <- subset(allStoppingPoints, distanceFromStation < scopeRadius)
@@ -130,7 +152,7 @@ shinyServer(function(input, output) {
     commuterData$distanceFromStation <- NA
     colDistance <- which(colnames(commuterData)=="distanceFromStation")
     for (i in 1:nrow(commuterData)){
-      longLat <- c(commuterData[i,5], commuterData[i,4])
+      longLat <- c(commuterData[i,current_long_col], commuterData[i,current_lat_col])
       commuterData[i,colDistance] <-  distGeo(stationLatLong, longLat)
     }
     commuterData <- subset(commuterData, distanceFromStation < scopeRadius)
@@ -140,14 +162,14 @@ shinyServer(function(input, output) {
     commuterData$closestBusStop <- NA
     closestBusStopCol <- which(colnames(commuterData)=="closestBusStop")
     for (i in 1:nrow(commuterData)){
-      longLat <- c(commuterData[i,5], commuterData[i,4])
+      longLat <- c(commuterData[i,current_long_col], commuterData[i,current_lat_col])
       
       tempProximityBusStops <- proximityStops
       tempProximityBusStops$distanceToCommuter <- NA
       distanceToCommuterCol <- which(colnames(tempProximityBusStops) == "distanceToCommuter")
       
       for (tempProximityBusStopsRow in 1:nrow(tempProximityBusStops)){
-        stopLongLat <- c(tempProximityBusStops[tempProximityBusStopsRow,5], tempProximityBusStops[tempProximityBusStopsRow,6])
+        stopLongLat <- c(tempProximityBusStops[tempProximityBusStopsRow,stop_long_col], tempProximityBusStops[tempProximityBusStopsRow,stop_lat_col])
         tempProximityBusStops[tempProximityBusStopsRow,distanceToCommuterCol] <-  distGeo(stopLongLat, longLat)
       }
       
@@ -206,8 +228,8 @@ shinyServer(function(input, output) {
     
     for (clusterCentreRow in 1:nrow(clusterCentres)){
       clusterCentre <- c(clusterCentres[clusterCentreRow,2], clusterCentres[clusterCentreRow,1])
-      tempAllStoppingPoints <- allStoppingPoints[grep("STN", allStoppingPoints$Name), ]
-      tempAllStoppingPoints <- cbind.data.frame(tempAllStoppingPoints$Name, tempAllStoppingPoints$coords.x2, tempAllStoppingPoints$coords.x1, NA)
+      tempAllStoppingPoints <- allStoppingPoints[grep("STN", allStoppingPoints$name), ]
+      tempAllStoppingPoints <- cbind.data.frame(tempAllStoppingPoints$name, tempAllStoppingPoints$latitude, tempAllStoppingPoints$longtitude, NA)
       colnames(tempAllStoppingPoints) <- c("name", "lat", "long", "distanceFromClusterCentre")
       for (i in 1:nrow(tempAllStoppingPoints)){
         longLat <- c(tempAllStoppingPoints[i,3], tempAllStoppingPoints[i,2])
@@ -266,7 +288,7 @@ shinyServer(function(input, output) {
     allStoppingPoints$distanceFromStation <- NA
     colDistance <- which(colnames(allStoppingPoints)=="distanceFromStation")
     for (i in 1:nrow(allStoppingPoints)){
-      longLat <- c(allStoppingPoints[i,5], allStoppingPoints[i,6])
+      longLat <- c(allStoppingPoints[i,stop_long_col], allStoppingPoints[i,stop_lat_col])
       allStoppingPoints[i,colDistance] <-  distGeo(stationLatLong, longLat)
     }
     proximityStops <- subset(allStoppingPoints, distanceFromStation < scopeRadius)
@@ -275,7 +297,7 @@ shinyServer(function(input, output) {
     commuterData$distanceFromStation <- NA
     colDistance <- which(colnames(commuterData)=="distanceFromStation")
     for (i in 1:nrow(commuterData)){
-      longLat <- c(commuterData[i,5], commuterData[i,4])
+      longLat <- c(commuterData[i,current_long_col], commuterData[i,current_lat_col])
       commuterData[i,colDistance] <-  distGeo(stationLatLong, longLat)
     }
     commuterData <- subset(commuterData, distanceFromStation < scopeRadius)
@@ -285,14 +307,14 @@ shinyServer(function(input, output) {
     commuterData$closestBusStop <- NA
     closestBusStopCol <- which(colnames(commuterData)=="closestBusStop")
     for (i in 1:nrow(commuterData)){
-      longLat <- c(commuterData[i,5], commuterData[i,4])
+      longLat <- c(commuterData[i,current_long_col], commuterData[i,current_lat_col])
       
       tempProximityBusStops <- proximityStops
       tempProximityBusStops$distanceToCommuter <- NA
       distanceToCommuterCol <- which(colnames(tempProximityBusStops) == "distanceToCommuter")
       
       for (tempProximityBusStopsRow in 1:nrow(tempProximityBusStops)){
-        stopLongLat <- c(tempProximityBusStops[tempProximityBusStopsRow,5], tempProximityBusStops[tempProximityBusStopsRow,6])
+        stopLongLat <- c(tempProximityBusStops[tempProximityBusStopsRow,stop_long_col], tempProximityBusStops[tempProximityBusStopsRow,stop_lat_col])
         tempProximityBusStops[tempProximityBusStopsRow,distanceToCommuterCol] <-  distGeo(stopLongLat, longLat)
       }
       
@@ -351,8 +373,8 @@ shinyServer(function(input, output) {
     
     for (clusterCentreRow in 1:nrow(clusterCentres)){
       clusterCentre <- c(clusterCentres[clusterCentreRow,2], clusterCentres[clusterCentreRow,1])
-      tempAllStoppingPoints <- allStoppingPoints[grep("STN", allStoppingPoints$Name), ]
-      tempAllStoppingPoints <- cbind.data.frame(tempAllStoppingPoints$Name, tempAllStoppingPoints$coords.x2, tempAllStoppingPoints$coords.x1, NA)
+      tempAllStoppingPoints <- allStoppingPoints[grep("STN", allStoppingPoints$name), ]
+      tempAllStoppingPoints <- cbind.data.frame(tempAllStoppingPoints$name, tempAllStoppingPoints$latitude, tempAllStoppingPoints$longtitude, NA)
       colnames(tempAllStoppingPoints) <- c("name", "lat", "long", "distanceFromClusterCentre")
       for (i in 1:nrow(tempAllStoppingPoints)){
         longLat <- c(tempAllStoppingPoints[i,3], tempAllStoppingPoints[i,2])
@@ -369,13 +391,12 @@ shinyServer(function(input, output) {
     #get breakdown of each destination by origin
     odTable <- as.data.frame(table(commutersInProximityOfClusterCentre$closestStation, commutersInProximityOfClusterCentre$closestBusStop))
     #################################################################################
-    #prepare data for surface plot
+    #prepare data for polty plot
     
     odTableWide <- reshape(odTable, idvar = "Var1", timevar = "Var2", direction = "wide")
     names(odTableWide) <- gsub("Freq.", "", names(odTableWide), fixed = TRUE)
     odTableWide$sum <- rowSums(odTableWide[, -1])
     odTableWide$Var1 <- factor(odTableWide$Var1, levels = unique(odTableWide$Var1)[order(odTableWide$sum, decreasing = TRUE)])
-    
     #################################################################################
     #surface plot
     matrix3d <- as.matrix(odTableWide[,-c(1,ncol(odTableWide))])
