@@ -58,10 +58,12 @@ shinyServer(function(input, output) {
     #default values in case shiny input fails   
     scopeRadius <- 800
     numberOfClusters <- 4
+    minCommutersInCluster <- 30
     
     #radius to focus on
     scopeRadius <- as.numeric(input$radius)
     numberOfClusters <- as.numeric(input$clusters)
+    minCommutersInCluster <- as.numeric(input$commutersInCluster)
     #################################################################################
     #get affected stops within radius
     
@@ -143,7 +145,7 @@ shinyServer(function(input, output) {
     
     ###############
     #keep on clusters with more than 30 commuters and subset based on shiny input
-    clusterCentres <- subset(clusterCentres, commutersDestinationInside > 30)
+    clusterCentres <- subset(clusterCentres, commutersDestinationInside > minCommutersInCluster)
     clusterCentres <- head(clusterCentres, numberOfClusters)
     
     #keep only commuters in proximity of a populated cluster
@@ -187,14 +189,14 @@ shinyServer(function(input, output) {
     #output csv for other sections to use
     write.csv(odTableWide, "odTableWide.csv", row.names = F)
     write.csv(clusterCentres, "clusterCentres.csv", row.names = F)
-    
-    "data loaded"
+
   })
   
   output$groundMap <- renderLeaflet({
     
     scopeRadius <- input$radius
     clusterCount <- input$clusters
+    minCommutersInCluster <- input$commutersInCluster
     clusterCentres <- read.csv("clusterCentres.csv", stringsAsFactors = F)
     ################################################################################
     #leaflet aestetics 
@@ -241,8 +243,9 @@ shinyServer(function(input, output) {
     
     scopeRadius <- input$radius
     clusterCount <- input$clusters
+    minCommutersInCluster <- input$commutersInCluster
     odTableWide <- read.csv("odTableWide.csv", stringsAsFactors = F)
-    
+
     #################################################################################
     #surface plot
     matrix3d <- as.matrix(odTableWide[,-c(1,ncol(odTableWide))])

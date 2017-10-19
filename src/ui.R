@@ -11,13 +11,11 @@ shinyUI(pageWithSidebar(
   sidebarPanel(
     conditionalPanel(condition="input.conditionedPanels==1",
                      width=1,
-                     selectInput("radius", "Radius:",
-                                 c("400m" = 400,
-                                   "800m" = 800,
-                                   "1000m" = 1000,
-                                   "1500m" = 1500,
-                                   "2000m" = 2000),
-                                 selected = 800),
+                     sliderInput("radius", "Radius Around Affected Station to Observe (m):",
+                                 min = 200,
+                                 max = 2000,
+                                 step= 100,
+                                 value = 800),
                      selectInput("clusters", "Clusters to Identify:",
                                  c("1" = 1,
                                    "2" = 2,
@@ -27,7 +25,12 @@ shinyUI(pageWithSidebar(
                                    "6" = 6,
                                    "7" = 7,
                                    "8" = 8),
-                                 selected = 4)
+                                 selected = 4),
+                     sliderInput("commutersInCluster", "Minimum Number of Commuters in Cluster:",
+                                 min = 20,
+                                 max = 100,
+                                 step = 10,
+                                 value = 30)
     ),
     conditionalPanel(condition="input.conditionedPanels==2",
                      #yikun and yixin - add sidebar panel codes here
