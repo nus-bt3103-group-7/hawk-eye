@@ -3,6 +3,7 @@ library(plotly)
 library(ggplot2)
 library(leaflet)
 library(plotly)
+library(shinyjs)
 
 shinyUI(pageWithSidebar(
   
@@ -34,7 +35,19 @@ shinyUI(pageWithSidebar(
     ),
     conditionalPanel(condition="input.conditionedPanels==2",
                      #yikun and yixin - add sidebar panel codes here
-                     helpText("Content Panel 2")
+                     shinyjs::useShinyjs(),
+                     div(
+                       id = "form",
+                       textInput("can_number", "CAN number"),
+                       actionButton("submit", "Submit", class = "btn-primary")
+                     ),
+                     shinyjs::hidden(
+                       div(
+                         id = "thankyou_msg",
+                         h3("Thank you, traffic fee will be refunded upon validation.")
+                       )
+                     )  
+                     
     ) 
   ),
   mainPanel(

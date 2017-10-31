@@ -34,3 +34,5 @@ vignettes/*.pdf
 
 # custom
 .DS_Store
+src/clusterCentres.csv
+src/odTableWide.csv

@@ -20,6 +20,13 @@ pullFromFirebase <- function(url){
   dataList <- fromJSON(con)
   as.data.frame(dataList)
 }
+
+insertCanNumber <- function(can_number) {
+  can_number = toJSON(list(CAN=can_number, timestamp_inserted=Sys.time()), pretty=TRUE, auto_unbox= TRUE)
+  POST("https://bt3101-07.firebaseio.com/can_number.json?auth=MULTPLyGcPig4Hd2aCplVibPdIm3bpHoiT1LJG3R",
+       body=can_number)
+}
+
 ###############
 #pulling data from firebase db
 
@@ -80,4 +87,11 @@ shinyServer(function(input, output) {
     generatePlotlySurfaceChart(odTableWide)
   })
   
+  observeEvent(input$submit, {
+    insertCanNumber(input$can_number)
+    shinyjs::reset("form")
+    shinyjs::hide("form")
+    shinyjs::show("thankyou_msg")
   })
+  
+})
