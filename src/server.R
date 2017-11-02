@@ -8,7 +8,7 @@ source("darylFunctions.R")
 
 #################################################################################
 #data
-
+fieldsMandatory <- c("can_number")
 # required data sets
 # static: allStoppingPoints (all bus stops)
 # dynamic: commuter's locations - simulated for now
@@ -92,6 +92,20 @@ shinyServer(function(input, output) {
     shinyjs::reset("form")
     shinyjs::hide("form")
     shinyjs::show("thankyou_msg")
+  })
+  
+  observe({
+    # check if all mandatory fields have a value
+    mandatoryFilled <-
+      vapply(fieldsMandatory,
+             function(x) {
+               !is.null(input[[x]]) && input[[x]] != ""
+             },
+             logical(1))
+    mandatoryFilled <- all(mandatoryFilled)
+    
+    # enable/disable the submit button
+    shinyjs::toggleState(id = "submit", condition = mandatoryFilled)
   })
   
 })
