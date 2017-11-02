@@ -8,7 +8,7 @@ source("darylFunctions.R")
 
 #################################################################################
 #data
-
+fieldsMandatory <- c("can_number")
 # required data sets
 # static: allStoppingPoints (all bus stops)
 # dynamic: commuter's locations - simulated for now
@@ -20,6 +20,13 @@ pullFromFirebase <- function(url){
   dataList <- fromJSON(con)
   as.data.frame(dataList)
 }
+
+insertCanNumber <- function(can_number) {
+  can_number = toJSON(list(CAN=can_number, timestamp_inserted=Sys.time()), pretty=TRUE, auto_unbox= TRUE)
+  POST("https://bt3101-07.firebaseio.com/can_number.json?auth=MULTPLyGcPig4Hd2aCplVibPdIm3bpHoiT1LJG3R",
+       body=can_number)
+}
+
 ###############
 #pulling data from firebase db
 
@@ -80,4 +87,25 @@ shinyServer(function(input, output) {
     generatePlotlySurfaceChart(odTableWide)
   })
   
+  observeEvent(input$submit, {
+    insertCanNumber(input$can_number)
+    shinyjs::reset("form")
+    shinyjs::hide("form")
+    shinyjs::show("thankyou_msg")
   })
+  
+  observe({
+    # check if all mandatory fields have a value
+    mandatoryFilled <-
+      vapply(fieldsMandatory,
+             function(x) {
+               !is.null(input[[x]]) && input[[x]] != ""
+             },
+             logical(1))
+    mandatoryFilled <- all(mandatoryFilled)
+    
+    # enable/disable the submit button
+    shinyjs::toggleState(id = "submit", condition = mandatoryFilled)
+  })
+  
+})
