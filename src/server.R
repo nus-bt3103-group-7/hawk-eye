@@ -5,6 +5,7 @@ library(jsonlite)
 library(httr)
 library(plotly)
 source("darylFunctions.R")
+source("yixinFunction.R")
 
 #################################################################################
 #data
@@ -34,6 +35,9 @@ commuterData <- pullFromFirebase("https://bt3101-07.firebaseio.com/user_data.jso
 allStoppingPoints <- pullFromFirebase("https://bt3101-07.firebaseio.com/bus_stop.json?auth=MULTPLyGcPig4Hd2aCplVibPdIm3bpHoiT1LJG3R")
 colnames(allStoppingPoints)[3] <- "longtitude"
 
+commuterData_yixin <- pullFromFirebase("https://bt3103demo-9d97e.firebaseio.com/commuter/-Kz5cyikkDnicPa3lHcp.json")
+allStoppingPoints_yixin <- pullFromFirebase("https://bt3103demo-9d97e.firebaseio.com/bus_stop/-Kz5cy9G1y7PyBSocOsX.json")
+
 #################################################################################
 #static parameters
 
@@ -45,6 +49,45 @@ stationLatLong <-c(103.8469711, 1.3513141)
 #################################################################################
 
 shinyServer(function(input, output) {
+  observeEvent(input$go, {
+    #insertNew(input$destination)
+    destination <- input$destination
+    radius <- as.numeric(input$radius)
+    current <- generateCurrentLocation(radius)
+    if(destination =="") {
+      output$warning <- renderText("Please enter your destination")
+      insertNew(current,data.frame(list(lon=NA,lat=NA)))
+    }
+    else {
+      # Not NA
+      dest <- geocode(destination)
+      longitude <- dest$lon
+      latitude <- dest$lat
+      if(is.na(longitude)==TRUE && is.na(latitude)==TRUE) {
+        output$warning <- renderText("Invalid address")
+        insertNew(current,dest)
+        output$mymap <- renderLeaflet({generateMap(commuterData_yixin,allStoppingPoints_yixin,radius,current)
+        })
+        output$barchart <- renderPlotly({generateBarChart(commuterData_yixin,allStoppingPoints_yixin,radius)})
+      }
+      else {
+        if(floor(longitude) != 103 && floor(latitude) != 1) {
+          output$warning <- renderText("Address is not in Singapore!")
+          insertNew(current,dest)
+          output$mymap <- renderLeaflet({generateMap(commuterData_yixin,allStoppingPoints_yixin,radius,current)})
+          output$barchart <- renderPlotly({generateBarChart(commuterData_yixin,allStoppingPoints_yixin,radius)})
+        }
+        else {
+          # Valid address
+          insertNew(current,dest)
+          output$mymap <- renderLeaflet({mapWithDestination(commuterData_yixin,allStoppingPoints_yixin,radius,current,dest)
+          })
+          output$barchart <- renderPlotly({generateBarChart(commuterData_yixin,allStoppingPoints_yixin,radius)})
+        }
+      }
+    }
+  }
+  )
   
   output$label <- renderText({
     #default values in case shiny input fails   
