@@ -1,8 +1,13 @@
+#this file contains all Daryl's functions required for server.R. server.R will call functions from this script
+
+#load required packages
 library(leaflet)
 library(geosphere)
 library(plotly)
 #################################################################################
 
+#this function does an initial process of all data take from the firebase DB,the output of this process is two csv files
+#these two csv files are later used as an input for the 3 UI elements in the PTO dashboard
 generateDataForGraphs <- function(commuterData, allStoppingPoints, scopeRadius, numberOfClusters, minCommutersInCluster, stationLatLong){
 
     #station name
@@ -23,7 +28,7 @@ generateDataForGraphs <- function(commuterData, allStoppingPoints, scopeRadius, 
     #################################################################################
     #get affected stops within radius
     
-    #radius for bus stops
+    #radius for bus stops - keep only bus stops within the set radius
     allStoppingPoints$distanceFromStation <- NA
     colDistance <- which(colnames(allStoppingPoints)=="distanceFromStation")
     
@@ -34,7 +39,7 @@ generateDataForGraphs <- function(commuterData, allStoppingPoints, scopeRadius, 
     
     proximityStops <- subset(allStoppingPoints, distanceFromStation < scopeRadius)
     
-    #radius for commuters
+    #radius for commuters - keep only commuters within the set radius
     commuterData$distanceFromStation <- NA
     colDistance <- which(colnames(commuterData)=="distanceFromStation")
     for (i in 1:nrow(commuterData)){
@@ -64,11 +69,12 @@ generateDataForGraphs <- function(commuterData, allStoppingPoints, scopeRadius, 
     }
     
     #################################################################################
-    #kmeans
+    #kmeans - perform a k means clustering on the commuters destination
+    #taking an initial number of clusters to be 10
     kmeansOutput <- kmeans(cbind(commuterData$destination_lat, commuterData$destination_long), centers = 10)
     
     ##########################
-    #get number of commuters within clusters and get the df of commuters within a cluster
+    #get number of commuters within each identified kmeans cluster in a dataframe
     
     clusterCentres <- as.data.frame(kmeansOutput$centers)
     colnames(clusterCentres) <- c("lat", "long")
@@ -100,7 +106,7 @@ generateDataForGraphs <- function(commuterData, allStoppingPoints, scopeRadius, 
     }
     
     ###############
-    #keep on clusters with more than 30 commuters and subset based on shiny input
+    #keep only clusters with more than 30 commuters and subset based on shiny input
     clusterCentres <- subset(clusterCentres, commutersDestinationInside > minCommutersInCluster)
     clusterCentres <- head(clusterCentres, numberOfClusters)
     
@@ -108,7 +114,7 @@ generateDataForGraphs <- function(commuterData, allStoppingPoints, scopeRadius, 
     commutersInProximityOfClusterCentre <- subset(commutersInProximityOfClusterCentre, cluster_id %in% unique(clusterCentres$id))
     
     ##########################
-    #get closest bus stop for cluster aka cluster name
+    #get closest bus stop for cluster center - this will be used as the cluster name
     
     clusterCentres$closestStation <- NA
     closestStationCol <- which(colnames(clusterCentres) == "closestStation")
@@ -134,7 +140,7 @@ generateDataForGraphs <- function(commuterData, allStoppingPoints, scopeRadius, 
     odTable <- as.data.frame(table(commutersInProximityOfClusterCentre$closestStation, commutersInProximityOfClusterCentre$closestBusStop))
     
     #################################################################################
-    #prepare data for polty plot
+    #prepare/format data for polty plots
     
     odTableWide <- reshape(odTable, idvar = "Var1", timevar = "Var2", direction = "wide")
     names(odTableWide) <- gsub("Freq.", "", names(odTableWide), fixed = TRUE)
@@ -146,6 +152,8 @@ generateDataForGraphs <- function(commuterData, allStoppingPoints, scopeRadius, 
     write.csv(odTableWide, "odTableWide.csv", row.names = F)
     write.csv(clusterCentres, "clusterCentres.csv", row.names = F)
 }
+
+#this will render the top/first graph (leafelt map) in the PTO's dashboard
 generateGroundMap <- function(commuterData, allStoppingPoints, clusterCentres, stationLatLong, scopeRadius){
   
   ################################################################################
@@ -168,6 +176,8 @@ generateGroundMap <- function(commuterData, allStoppingPoints, clusterCentres, s
     # addCircles(lng =allStoppingPoints$longtitude, lat=allStoppingPoints$latitude, col = "black", group = "All Bus Stops", radius = 10) %>%
     addCircles(lng =clusterCentres$long, lat=clusterCentres$lat, col = "green", opacity = 0.2, radius = 2000, stroke=FALSE, group = "Suggested Clusters") 
 }
+
+#this will render the middle/second graph (bar chart) in the PTO's dashboard
 generatePlotlyBarChart <- function(odTableWide){
   #################################################################################
   #generate plotly
@@ -185,6 +195,8 @@ generatePlotlyBarChart <- function(odTableWide){
   
   plotlyBarChart
 }
+
+#this will render the bottom/third graph (3D surface chart) in the PTO's dashboard
 generatePlotlySurfaceChart <- function(odTableWide){
   
   odTableWide$Var1 <- factor(odTableWide$Var1, levels = unique(odTableWide$Var1)[order(odTableWide$sum, decreasing = TRUE)])

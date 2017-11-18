@@ -9,9 +9,6 @@ source("darylFunctions.R")
 #################################################################################
 #data
 fieldsMandatory <- c("can_number")
-# required data sets
-# static: allStoppingPoints (all bus stops)
-# dynamic: commuter's locations - simulated for now
 
 ################ function to get data from firebase
 pullFromFirebase <- function(url){
@@ -59,6 +56,7 @@ shinyServer(function(input, output) {
     generateDataForGraphs(commuterData, allStoppingPoints, scopeRadius, numberOfClusters, minCommutersInCluster, stationLatLong)
   })
   
+  #this will render the top/first graph (leafelt map) in the PTO's dashboard
   output$groundMap <- renderLeaflet({
     scopeRadius <- input$radius
     clusterCount <- input$clusters
@@ -68,6 +66,7 @@ shinyServer(function(input, output) {
     generateGroundMap(commuterData, allStoppingPoints, clusterCentres, stationLatLong, scopeRadius)
   })
   
+  #this will render the middle/second graph (bar chart) in the PTO's dashboard
   output$plotlyBarChart <- renderPlotly({
     scopeRadius <- input$radius
     clusterCount <- input$clusters
@@ -78,6 +77,7 @@ shinyServer(function(input, output) {
   })
   
 
+  #this will render the bottom/third graph (3D surface chart) in the PTO's dashboard
   output$plotlySurfaceChart <- renderPlotly({
     scopeRadius <- input$radius
     clusterCount <- input$clusters
