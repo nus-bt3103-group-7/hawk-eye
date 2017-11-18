@@ -75,6 +75,12 @@ shinyUI(pageWithSidebar(
   ),
   mainPanel(
     tabsetPanel(
+      tabPanel("Comuter View ", 
+               #yikun and yixin - add ui main panel codes here,
+               fluidRow(h3(textOutput("warning"))),
+               fluidRow(leafletOutput("mymap")),
+               fluidRow(plotlyOutput("barchart")),
+               value=2),
       tabPanel("PTO View", value=1,
                fluidRow(
                  leafletOutput("groundMap")
@@ -85,14 +91,9 @@ shinyUI(pageWithSidebar(
                ),
                fluidRow(plotlyOutput(outputId = "plotlySurfaceChart")
                )
-               ), 
+               ),
       
-      tabPanel("Comuter View ", 
-               #yikun and yixin - add ui main panel codes here,
-               fluidRow(h3(textOutput("warning"))),
-               fluidRow(leafletOutput("mymap")),
-               fluidRow(plotlyOutput("barchart")),
-               value=2),
+
        id = "conditionedPanels"
     )
   )

@@ -35,16 +35,16 @@ generateMap <- function(commuterData, allStoppingPoints, scopeRadius,currentLoca
   stationIcon <- icons(iconUrl = '../resources/bus_station_icon.png', iconWidth = 20,iconHeight = 20)
   m <- leaflet()
   m <- addLayersControl(m,
-      overlayGroups = c("Commuters' Location","All Bus Stops"),
-      options = layersControlOptions(collapsed = FALSE)
-    )
+                        overlayGroups = c("Commuters' Location","All Bus Stops"),
+                        options = layersControlOptions(collapsed = FALSE)
+  )
   m <- addProviderTiles(m,"CartoDB.Positron")
   m <- addMarkers(m,lng=stationLatLong[1], lat=stationLatLong[2], icon = mrtIcon, popup=scopeRadius, group = "Affected Station")
-    #hideGroup("All Bus Stops") %>% 
-    #addLegend('bottomright', title = "Commuters' Data", colors =c("blue", "red"), labels =c("Current", "Destinations")) %>%
+  #hideGroup("All Bus Stops") %>% 
+  #addLegend('bottomright', title = "Commuters' Data", colors =c("blue", "red"), labels =c("Current", "Destinations")) %>%
   m <- addMarkers(m,lng =newStop$longitude, lat=newStop$latitude, icon = stationIcon, group = "All Bus Stops")
   m <- addCircleMarkers(m,lng =filterCommuter$current_long, lat=filterCommuter$current_lat, group = "Commuters' Location",
-               clusterOptions = markerClusterOptions(),radius = 5,color="red") 
+                        clusterOptions = markerClusterOptions(),radius = 5,color="red") 
   m <- addMarkers(m,lng = current[2], lat = current[1],label = "You are here") 
   
   
@@ -156,7 +156,7 @@ server <- function(input, output) {
     if(destination =="") {
       output$warning <- renderText("Please enter your destination")
       insertNew(current,data.frame(list(lon=NA,lat=NA)))
-      }
+    }
     else {
       # Not NA
       dest <- geocode(destination)
@@ -166,7 +166,7 @@ server <- function(input, output) {
         output$warning <- renderText("Invalid address")
         insertNew(current,dest)
         output$mymap <- renderLeaflet({generateMap(commuterData,allStoppingPoints,radius,current)
-      })
+        })
         output$barchart <- renderPlotly({generateBarChart(commuterData,allStoppingPoints,radius)})
       }
       else {
@@ -180,12 +180,10 @@ server <- function(input, output) {
           # Valid address
           insertNew(current,dest)
           output$mymap <- renderLeaflet({mapWithDestination(commuterData,allStoppingPoints,radius,current,dest)
-            })
+          })
           output$barchart <- renderPlotly({generateBarChart(commuterData,allStoppingPoints,radius)})
         }
-        }
+      }
     }
-    }
-    )}
-
-
+  }
+  )}
