@@ -6,33 +6,6 @@ library(geosphere)
 library(plotly)
 library(ggmap)
 library(ggplot2)
-source("darylFunctions.R")
-
-
-ui <- fluidPage(
-  textInput("destination","Enter destination:"),
-  selectInput("radius", "Select radius(m)",
-              c(200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500),
-              selected = 800),
-  actionButton("go","Go"),
-  h3(textOutput("warning")),
-  leafletOutput("mymap"),
-  plotlyOutput("barchart")
-)
-
-
-################ function to get data from firebase
-pullFromFirebase <- function(url){
-  link <- GET(url)
-  content <- content(link, as="text")
-  list <- fromJSON(content)
-  as.data.frame(list)
-}
-
-
-commuterData <- pullFromFirebase("https://bt3103demo-9d97e.firebaseio.com/commuter/-Kz5cyikkDnicPa3lHcp.json")
-allStoppingPoints <- pullFromFirebase("https://bt3103demo-9d97e.firebaseio.com/bus_stop/-Kz5cy9G1y7PyBSocOsX.json")
-
 
 #station name
 stationName <- "Bishan MRT"
@@ -215,6 +188,4 @@ server <- function(input, output) {
     }
     )}
 
-
-shinyApp(server = server, ui = ui)
 
