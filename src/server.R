@@ -61,7 +61,7 @@ shinyServer(function(input, output) {
       longitude <- dest$lon
       latitude <- dest$lat
       if(is.na(longitude)==TRUE && is.na(latitude)==TRUE) {
-        output$warning <- renderText("Cannot Find Your Destination Location")
+        output$warning <- renderText("Invalid address")
         insertNew(current,dest)
         output$mymap <- renderLeaflet({generateMap(commuterData_yixin,allStoppingPoints_yixin,radius,current)
         })
@@ -76,7 +76,6 @@ shinyServer(function(input, output) {
         }
         else {
           # Valid address
-          output$warning <- renderText("")
           insertNew(current,dest)
           output$mymap <- renderLeaflet({mapWithDestination(commuterData_yixin,allStoppingPoints_yixin,radius,current,dest)
           })

@@ -35,6 +35,11 @@ shinyUI(pageWithSidebar(
     ),
     conditionalPanel(condition="input.conditionedPanels==2",
                      #yikun and yixin - add sidebar panel codes here
+                     textInput("destination","Enter destination:"),
+                     selectInput("radius", "Select radius(m)",
+                                          c(200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500),
+                                          selected = 800),
+                     actionButton("go","Go"),
                      shinyjs::useShinyjs(),
                      div(
                        id = "form",
@@ -84,17 +89,10 @@ shinyUI(pageWithSidebar(
       
       tabPanel("Comuter View ", 
                #yikun and yixin - add ui main panel codes here,
-               value=2),
-      tabPanel("Crowdedness overview",
-               fluidRow(textInput("destination","Enter destination:")),
-               fluidRow(selectInput("radius", "Select radius(m)",
-                           c(200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500),
-                           selected = 800)),
-               fluidRow(actionButton("go","Go")),
                fluidRow(h3(textOutput("warning"))),
                fluidRow(leafletOutput("mymap")),
-               fluidRow(plotlyOutput("barchart"))
-               ),
+               fluidRow(plotlyOutput("barchart")),
+               value=2),
        id = "conditionedPanels"
     )
   )
