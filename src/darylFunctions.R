@@ -158,12 +158,12 @@ generateGroundMap <- function(commuterData, allStoppingPoints, clusterCentres, s
   
   ################################################################################
   #leaflet aestetics 
-  mrtIcon <- icons(iconUrl = 'mrt_logo.png',   iconWidth = 25, iconHeight = 30)
+  mrtIcon <- icons(iconUrl = '../resources/mrt_logo.png',   iconWidth = 25, iconHeight = 30)
   #################################################################################
   #generate leaflet
   leaflet() %>%
     addLayersControl(
-      overlayGroups = c("Commuters' Destination", "Suggested Clusters"),
+      overlayGroups = c("Commuters' Destination", "Suggested Clusters", "All Bus Stops"),
       options = layersControlOptions(collapsed = FALSE)
     )%>%
     addProviderTiles("CartoDB.Positron") %>%
@@ -173,7 +173,7 @@ generateGroundMap <- function(commuterData, allStoppingPoints, clusterCentres, s
     # addCircles(lng =proximityStopslongtitude, lat=proximityStopslatitude, group = "Nearby Stations") %>%
     addCircles(lng =commuterData$current_long, lat=commuterData$current_lat, group = "Commuters' Location") %>%
     addCircles(lng =commuterData$destination_long, lat=commuterData$destination_lat, col = "red", group = "Commuters' Destination") %>%
-    # addCircles(lng =allStoppingPoints$longtitude, lat=allStoppingPoints$latitude, col = "black", group = "All Bus Stops", radius = 10) %>%
+    addCircles(lng =allStoppingPoints$longtitude, lat=allStoppingPoints$latitude, col = "black", group = "All Bus Stops", radius = 10) %>%
     addCircles(lng =clusterCentres$long, lat=clusterCentres$lat, col = "green", opacity = 0.2, radius = 2000, stroke=FALSE, group = "Suggested Clusters") 
 }
 
@@ -184,10 +184,8 @@ generatePlotlyBarChart <- function(odTableWide){
   
   odTableWide$Var1 <- factor(odTableWide$Var1, levels = unique(odTableWide$Var1)[order(odTableWide$sum, decreasing = TRUE)])
   
-  f <- list(size = 9)
-  
   plotlyBarChart <- plot_ly(odTableWide, x = ~as.factor(Var1), y = odTableWide[,2], name = colnames(odTableWide)[2], type = 'bar') %>%
-    layout(yaxis = list(title = 'Current Locations'), xaxis = list(title = 'Current Destinations', tickfont = f), barmode = 'stack', title = "")
+    layout(yaxis = list(title = 'Current Locations'), xaxis = list(title = 'Current Destinations'), barmode = 'stack', title = "")
   
   for (i in 3:(ncol(odTableWide)-1)){
     plotlyBarChart <- add_trace(plotlyBarChart, y = odTableWide[,i], name = colnames(odTableWide)[i])
