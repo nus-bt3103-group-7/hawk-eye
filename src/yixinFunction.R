@@ -31,8 +31,8 @@ generateMap <- function(commuterData, allStoppingPoints, scopeRadius,currentLoca
   filterCommuter <- commuterData[which(commuterData$distance<=scopeRadius),]
   
   ### plot the map ###
-  mrtIcon <- icons(iconUrl = '../resources/mrt_logo.png',   iconWidth = 25, iconHeight = 30)
-  stationIcon <- icons(iconUrl = '../resources/bus_station_icon.png', iconWidth = 20,iconHeight = 20)
+  mrtIcon <- icons(iconUrl = 'mrt_logo.png',   iconWidth = 25, iconHeight = 30)
+  stationIcon <- icons(iconUrl = 'bus_station_icon.png', iconWidth = 20,iconHeight = 20)
   m <- leaflet()
   m <- addLayersControl(m,
                         overlayGroups = c("Commuters' Location","All Bus Stops"),
@@ -62,8 +62,8 @@ mapWithDestination <- function(commuterData,allStoppingPoints,scopeRadius,curren
   filterCommuter <- commuterData[which(commuterData$distance<=scopeRadius),]
   
   ### plot the map ###
-  mrtIcon <- icons(iconUrl = '../resources/mrt_logo.png',   iconWidth = 25, iconHeight = 30)
-  stationIcon <- icons(iconUrl = '../resources/bus_station_icon.png', iconWidth = 20,iconHeight = 20)
+  mrtIcon <- icons(iconUrl = 'mrt_logo.png',   iconWidth = 25, iconHeight = 30)
+  stationIcon <- icons(iconUrl = 'bus_station_icon.png', iconWidth = 20,iconHeight = 20)
   m <- leaflet()
   m <- addLayersControl(m,
                         overlayGroups = c("Commuters' Location","All Bus Stops"),

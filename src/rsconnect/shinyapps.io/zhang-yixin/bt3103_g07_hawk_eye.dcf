@@ -1,0 +1,13 @@
+name: bt3103_g07_hawk_eye
+title: BT3103_G07_Hawk_eye
+username:
+account: zhang-yixin
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 237311
+bundleId: 1083752
+url: https://zhang-yixin.shinyapps.io/bt3103_g07_hawk_eye/
+when: 1511069068.5068
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: clusterCentres.csv|data_loader.R|database_setup_yixin.R|insertJson.R|odTableWide.csv|simulator.R

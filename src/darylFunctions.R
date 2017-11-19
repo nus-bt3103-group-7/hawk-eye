@@ -158,7 +158,7 @@ generateGroundMap <- function(commuterData, allStoppingPoints, clusterCentres, s
   
   ################################################################################
   #leaflet aestetics 
-  mrtIcon <- icons(iconUrl = '../resources/mrt_logo.png',   iconWidth = 25, iconHeight = 30)
+  mrtIcon <- icons(iconUrl = 'mrt_logo.png',   iconWidth = 25, iconHeight = 30)
   #################################################################################
   #generate leaflet
   

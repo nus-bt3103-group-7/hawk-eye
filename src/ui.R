@@ -24,7 +24,7 @@ ui <- dashboardPage(
                           c(200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500),
                           selected = 800),
               actionButton("go","Go"),
-              fluidRow(h3(textOutput("warning"))),
+              h3(textOutput("warning")),
               fluidRow(
                 column(7,leafletOutput("mymap")),
                 column(5,plotlyOutput("barchart"))

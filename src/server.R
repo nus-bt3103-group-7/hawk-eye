@@ -77,6 +77,7 @@ shinyServer(function(input, output) {
         else {
           # Valid address
           insertNew(commuterData_yixin,current,dest)
+          output$warning <- renderText("")
           output$mymap <- renderLeaflet({mapWithDestination(commuterData_yixin,allStoppingPoints_yixin,radius,current,dest)
           })
           output$barchart <- renderPlotly({generateBarChart(commuterData_yixin,allStoppingPoints_yixin,radius)})
