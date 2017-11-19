@@ -1,5 +1,7 @@
 library(shiny)
 library(shinydashboard)
+library(plotly)
+library(leaflet)
 
 ui <- dashboardPage(
   dashboardHeader(title = "Hawk-Eye"),
