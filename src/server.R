@@ -50,10 +50,10 @@ shinyServer(function(input, output) {
     #insertNew(input$destination)
     destination <- input$destination
     radius <- as.numeric(input$radius)
-    current <- generateCurrentLocation(radius)
+    current <- generateCurrentLocation(commuterData_yixin,radius)
     if(destination =="") {
       output$warning <- renderText("Please enter your destination")
-      insertNew(current,data.frame(list(lon=NA,lat=NA)))
+      insertNew(commuterData_yixin,current,data.frame(list(lon=NA,lat=NA)))
     }
     else {
       # Not NA
@@ -62,7 +62,7 @@ shinyServer(function(input, output) {
       latitude <- dest$lat
       if(is.na(longitude)==TRUE && is.na(latitude)==TRUE) {
         output$warning <- renderText("Invalid address")
-        insertNew(current,dest)
+        insertNew(commuterData_yixin,current,dest)
         output$mymap <- renderLeaflet({generateMap(commuterData_yixin,allStoppingPoints_yixin,radius,current)
         })
         output$barchart <- renderPlotly({generateBarChart(commuterData_yixin,allStoppingPoints_yixin,radius)})
@@ -70,13 +70,13 @@ shinyServer(function(input, output) {
       else {
         if(floor(longitude) != 103 && floor(latitude) != 1) {
           output$warning <- renderText("Address is not in Singapore!")
-          insertNew(current,dest)
+          insertNew(commuterData_yixin,current,dest)
           output$mymap <- renderLeaflet({generateMap(commuterData_yixin,allStoppingPoints_yixin,radius,current)})
           output$barchart <- renderPlotly({generateBarChart(commuterData_yixin,allStoppingPoints_yixin,radius)})
         }
         else {
           # Valid address
-          insertNew(current,dest)
+          insertNew(commuterData_yixin,current,dest)
           output$mymap <- renderLeaflet({mapWithDestination(commuterData_yixin,allStoppingPoints_yixin,radius,current,dest)
           })
           output$barchart <- renderPlotly({generateBarChart(commuterData_yixin,allStoppingPoints_yixin,radius)})

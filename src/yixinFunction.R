@@ -22,7 +22,7 @@ generateMap <- function(commuterData, allStoppingPoints, scopeRadius,currentLoca
   distanceFromCentre = by(allStoppingPoints, 1:nrow(allStoppingPoints), function(row) { distHaversine(c(row$longitude, row$latitude), stationLatLong)})
   allStoppingPoints$distance <- distanceFromCentre
   newStop <- allStoppingPoints[which(allStoppingPoints$distance<=scopeRadius),]
-  current <- generateCurrentLocation(scopeRadius)
+  current <- generateCurrentLocation(commuterData,scopeRadius)
   
   
   ### filter commuter data ###
@@ -83,6 +83,17 @@ mapWithDestination <- function(commuterData,allStoppingPoints,scopeRadius,curren
 
 ### Function to plot bar chart ###
 generateBarChart <- function (commuterData,allStoppingPoints,scopeRadius) {
+  
+  current_lat_col <- which(colnames(commuterData) == "current_lat")
+  current_long_col <- which(colnames(commuterData) == "current_long")
+  destination_long_col <- which(colnames(commuterData) == "destination_long")
+  destination_lat_col <- which(colnames(commuterData) == "destination_lat")
+  station_long_col <- which(colnames(commuterData) == "station_long")
+  station_lat_col <- which(colnames(commuterData) == "station_lat")
+  stop_lat_col <- which(colnames(allStoppingPoints) == "latitude")
+  stop_long_col <- which(colnames(allStoppingPoints) == "longitude")
+  stop_name_col <- which(colnames(allStoppingPoints) == "name")
+  
   ### filter bus stop data ###
   distanceFromCentre = by(allStoppingPoints, 1:nrow(allStoppingPoints), function(row) { distHaversine(c(row$longitude, row$latitude), stationLatLong)})
   allStoppingPoints$distance <- distanceFromCentre
@@ -120,7 +131,7 @@ generateBarChart <- function (commuterData,allStoppingPoints,scopeRadius) {
 }
 
 ### Function to generate user current location within 1000m square from affected MRT station
-generateCurrentLocation <- function(radius) {
+generateCurrentLocation <- function(commuterData,radius) {
   a <- sqrt(radius/2)
   longDisplaceUnits <- (a * 1/111111)
   latDisplaceUnits <- a * (0.2 / cos(stationLat) / 111111)
@@ -134,7 +145,7 @@ generateCurrentLocation <- function(radius) {
 }
 
 #### Function to generate new full data and insert into db ####
-insertNew <- function(curLocation,destination) {
+insertNew <- function(commuterData,curLocation,destination) {
   new <- toJSON(list(commuter_id=length(commuterData[,1])+1,
                      current_lat = curLocation[1],
                      current_long = curLocation[2],
